@@ -1,0 +1,10 @@
+@RootURL = http://localhost:5016
+
+GET {{RootURL}}/weatherforecast/
+Accept: application/json
+
+###
+GET {{RootURL}}/api/Playlist/
+Accept: application/json
+
+###
