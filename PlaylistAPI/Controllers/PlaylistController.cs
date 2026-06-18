@@ -16,15 +16,7 @@ namespace PlaylistAPI.Controllers
             _context = context;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetAllPlaylists()
-        {
-            var playlists = await _context.Playlists
-                .Include(p => p.Songs)
-                .ToListAsync();
-
-            return Ok(playlists); 
-        }
+        
 
         [HttpGet("user/{userId}")]
         public async Task<IActionResult> GetPlaylistsByUserId(Guid userId)
@@ -60,7 +52,7 @@ namespace PlaylistAPI.Controllers
         }
 
         [HttpPost("{playlistId}/songs")]
-        public async Task<IActionResult> AddSongToPlaylist(Guid playlistId, [FromBody] Song newSong)
+        public async Task<IActionResult> AddSongToPlaylist(Guid playlistId, Song newSong)
         {
             var playlist = await _context.Playlists
                 .Include(p => p.Songs)
@@ -68,7 +60,7 @@ namespace PlaylistAPI.Controllers
 
             if (playlist == null)
             {
-                return NotFound("Playlist not found.");
+                return NotFound("Playlist not found");
             }
 
             newSong.Id = Guid.NewGuid();
@@ -76,6 +68,23 @@ namespace PlaylistAPI.Controllers
             await _context.SaveChangesAsync();
 
             return Ok(newSong);
+        }
+
+
+        [HttpPut("{playlistId}")]
+        public async Task<IActionResult> UpdatePlaylist(Guid playlistId, string newName)
+        {
+            var playlist = await _context.Playlists.FindAsync(playlistId);
+
+            if (playlist == null)
+            {
+                return NotFound("Playlist not found.");
+            }
+
+            playlist.Name = newName;
+            await _context.SaveChangesAsync();
+
+            return Ok(playlist);
         }
     }
 }

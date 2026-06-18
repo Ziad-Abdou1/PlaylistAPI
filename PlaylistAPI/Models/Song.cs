@@ -1,10 +1,6 @@
-﻿namespace PlaylistAPI.Models
+﻿public class Song
 {
-    public class Song
-    {
-        public Guid Id { get; set; }
-        public string Name { get; set; }
-
-
-    }
+    public Guid Id { get; set; }
+    public string Title { get; set; }
+    public List<Playlist> Playlists { get; set; } = new List<Playlist>();
 }
