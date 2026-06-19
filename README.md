@@ -1,5 +1,11 @@
 # Database Architecture Documentation
 
+## Development Context & AI Log
+As part of the development and documentation process, the full AI chat context used for this project can be found here:
+🔗 **[Gemini Conversation Link](https://gemini.google.com/share/aac854bea56f)**
+
+---
+
 ## 1. High-Level Architectural Overview
 **Technology Stack:** Microsoft SQL Server, ASP.NET Core, Entity Framework (EF) Core.
 
