@@ -91,7 +91,19 @@ namespace PlaylistAPI.Controllers
                 return NotFound("No playlist found for this user.");
             }
 
-            return Ok(playlists);
+            var response = playlists.Select(p => new PlaylistResponseDto
+            {
+                Id = p.Id,
+                Name = p.Name,
+                UserId = p.UserId,
+                Songs = p.Songs.Select(s => new SongResponseDto
+                {
+                    Id = s.Id,
+                    Title = s.Title
+                }).ToList()
+            }).ToList();
+
+            return Ok(response);
         }
 
 

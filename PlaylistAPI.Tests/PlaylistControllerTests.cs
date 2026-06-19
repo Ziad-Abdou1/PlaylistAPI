@@ -16,10 +16,6 @@ namespace PlaylistAPI.Tests
                 .Options;
             return new AppDbContext(options);
         }
-
-        // ==========================================
-        // 1. GET PLAYLISTS TESTS
-        // ==========================================
         [Fact]
         public async Task GetPlaylistsByUserId_ReturnsOk_WhenPlaylistsExist()
         {
@@ -49,9 +45,6 @@ namespace PlaylistAPI.Tests
             Assert.Equal("No playlist found for this user.", notFoundResult.Value);
         }
 
-        // ==========================================
-        // 2. ADD SONG TESTS
-        // ==========================================
 
         [Fact]
         public async Task AddSongToPlaylist_ReturnsNotFound_WhenPlaylistDoesNotExist()
@@ -84,10 +77,6 @@ namespace PlaylistAPI.Tests
             Assert.Equal("Hotel California", updatedPlaylist.Songs.First().Title);
         }
 
-        // ==========================================
-        // 3. DELETE PLAYLIST TESTS (Testing Edge Cases)
-        // ==========================================
-
         [Fact]
         public async Task DeletePlaylist_ReturnsForbid_WhenWrongUserTriesToDelete()
         {
@@ -119,6 +108,79 @@ namespace PlaylistAPI.Tests
             var result = await controller.DeletePlaylist(playlistId, userId);
             Assert.IsType<NoContentResult>(result);
             Assert.Empty(context.Playlists);
+        }
+
+        // --- NEW TESTS START HERE ---
+        [Fact]
+        public async Task CreatePlaylist_ReturnsCreatedAtAction_WhenValidDataProvided()
+        {
+            var context = GetInMemoryDbContext();
+            var controller = new PlaylistController(context);
+            var userId = Guid.NewGuid();
+            var newPlaylistDto = new CreatePlaylistDto { Name = "Workout Mix" };
+
+            var result = await controller.CreatePlaylist(userId, newPlaylistDto);
+
+            var createdResult = Assert.IsType<CreatedAtActionResult>(result);
+
+            var createdPlaylist = Assert.IsType<PlaylistResponseDto>(createdResult.Value);
+
+            Assert.Equal("Workout Mix", createdPlaylist.Name);
+            Assert.Equal(userId, createdPlaylist.UserId);
+            Assert.Single(context.Playlists);
+        }
+
+
+        [Fact]
+        public async Task DeletePlaylist_ReturnsNotFound_WhenPlaylistDoesNotExist()
+        {
+            var context = GetInMemoryDbContext();
+            var controller = new PlaylistController(context);
+            var randomPlaylistId = Guid.NewGuid();
+            var userId = Guid.NewGuid();
+
+            var result = await controller.DeletePlaylist(randomPlaylistId, userId);
+            var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
+            Assert.Equal("Playlist not found.", notFoundResult.Value);
+        }
+
+        [Fact]
+        public async Task RemoveSongFromPlaylist_ReturnsNoContent_WhenSuccessful()
+        {
+            var context = GetInMemoryDbContext();
+            var playlistId = Guid.NewGuid();
+            var songId = Guid.NewGuid();
+            var song = new Song { Id = songId, Title = "Stairway to Heaven" };
+            var playlist = new Playlist { Id = playlistId, Name = "Classics", UserId = Guid.NewGuid() };
+
+            playlist.Songs.Add(song);
+            context.Playlists.Add(playlist);
+            await context.SaveChangesAsync();
+
+            var controller = new PlaylistController(context);
+            var result = await controller.RemoveSongFromPlaylist(playlistId, songId);
+            Assert.IsType<NoContentResult>(result);
+
+            var updatedPlaylist = await context.Playlists.Include(p => p.Songs).FirstAsync();
+            Assert.Empty(updatedPlaylist.Songs);
+        }
+
+        [Fact]
+        public async Task RemoveSongFromPlaylist_ReturnsNotFound_WhenSongNotInPlaylist()
+        {
+            var context = GetInMemoryDbContext();
+            var playlistId = Guid.NewGuid();
+            var playlist = new Playlist { Id = playlistId, Name = "Classics", UserId = Guid.NewGuid() };
+
+            context.Playlists.Add(playlist);
+            await context.SaveChangesAsync();
+
+            var controller = new PlaylistController(context);
+            var randomSongId = Guid.NewGuid();
+
+            var result = await controller.RemoveSongFromPlaylist(playlistId, randomSongId);
+            var notFoundResult = Assert.IsType<NotFoundObjectResult>(result);
+            Assert.Equal("Song is not in this playlist.", notFoundResult.Value);
         }
     }
 }
