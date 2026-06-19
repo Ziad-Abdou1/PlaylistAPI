@@ -1,7 +1,3 @@
 @RootURL = http://localhost:5016
 
 
-GET {{RootURL}}/api/Playlist/
-Accept: application/json
-
-###
